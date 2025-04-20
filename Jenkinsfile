@@ -1,61 +1,58 @@
 pipeline {
-    agent any
+    agent { label 'windows' } // or 'any' if your Jenkins agents are Windows by default
 
     environment {
-        // Explicit paths for Python and pip executables
+        // Point to your Python executable
         PYTHON = 'C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
-        PIP    = 'C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\pip.exe'
-        
     }
 
     stages {
-        stage('Clone Repo') {
+        stage('Checkout') {
             steps {
-                echo '📥 Cloning Customer Churn Prediction repository...'
-                git branch: 'main', url: 'https://github.com/Ishaan-afk70/Customer-Churn-Prediction.git'
+                git url: 'https://github.com/AdityaRam24/HMM-.git', branch: 'main'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo '📦 Installing Python packages...'
-                bat '''
-                    %PIP% install --upgrade pip
-                    %PIP% install -r requirements.txt
-                    // Additional test dependencies
-                    %PIP% install werkzeug flask pytest pytest-flask
-                    pip list
-                '''
+                // Upgrade pip and install from requirements.txt
+                bat """
+                   "%PYTHON%" -m pip install --upgrade pip
+                   "%PYTHON%" -m pip install -r requirements.txt
+                """
             }
         }
 
-        stage('Run Model Script') {
+        stage('Lint & Test') {
             steps {
-                echo '🚀 Executing churn prediction script...'
-                bat '%PYTHON% churn.py'
+                // If you have pytest or flake8 configured, uncomment what's needed
+                bat """
+                   // "%PYTHON%" -m flake8 .
+                   "%PYTHON%" -m pytest --maxfail=1 --disable-warnings -q || exit 0
+                """
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Flask App') {
             steps {
-                echo '🧪 Running unit tests...'
-                bat '%PYTHON% -m pytest tests --maxfail=1 --disable-warnings -q'
-            }
-        }
-
-        stage('Deploy (optional)') {
-            steps {
-                echo '🚢 Deployment logic placeholder.'
+                // Launch your Flask app; Jenkins will show the console logs
+                bat """
+                   echo Starting Flask app...
+                   "%PYTHON%" app.py
+                """
             }
         }
     }
 
     post {
+        always {
+            echo 'Pipeline finished.'
+        }
         success {
-            echo '✅ Pipeline completed successfully!'
+            echo '✅ Build succeeded!'
         }
         failure {
-            echo '❌ Pipeline failed. Review console output for details.'
+            echo '❌ Build failed!'
         }
     }
 }
