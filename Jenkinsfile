@@ -15,32 +15,30 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 bat """
+                   echo Installing dependencies…
                    "%PYTHON%" -m pip install --upgrade pip
                    "%PYTHON%" -m pip install -r requirements.txt
                 """
             }
         }
 
-        stage('Package') {
+        stage('Run App') {
             steps {
-                // if you don't have setup.py, you can skip this
                 bat """
-                   "%PYTHON%" -m pip install wheel
-                   "%PYTHON%" setup.py bdist_wheel
+                   echo Starting Flask app in background…
+                   START /B "" "%PYTHON%" app.py > server.log 2>&1
+                   echo Waiting for server to start…
+                   TIMEOUT /T 5 /NOBREAK
+                   echo Flask should now be running at http://127.0.0.1:5000
+                   echo (logs in server.log)
                 """
-            }
-        }
-
-        stage('Archive Artifact') {
-            steps {
-                archiveArtifacts artifacts: 'dist/*.whl', fingerprint: true
             }
         }
     }
 
     post {
-        always   { echo '🚀 Pipeline finished.' }
-        success  { echo '✅ Build succeeded!' }
-        failure  { echo '❌ Build failed!' }
+        always  { echo '🛠 Pipeline finished.' }
+        success { echo '✅ Build succeeded!' }
+        failure { echo '❌ Build failed!' }
     }
 }
