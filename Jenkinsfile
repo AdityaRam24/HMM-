@@ -12,29 +12,54 @@ pipeline {
         }
         stage('Setup Python') {
             steps {
-                // Create and activate a virtual environment
-                sh 'python3 -m venv "$VENV_HOME"'
-                sh '. "$VENV_HOME/bin/activate"'
+                script {
+                    if (isUnix()) {
+                        // Linux/macOS: create and activate venv
+                        sh 'python3 -m venv "$VENV_HOME"'
+                        sh '. "$VENV_HOME/bin/activate"'
+                    } else {
+                        // Windows: create and activate venv
+                        bat '"C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe" -m venv "%VENV_HOME%"'
+                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat"'
+                    }
+                }
             }
         }
         stage('Install Dependencies') {
             steps {
-                // Upgrade pip and install project dependencies
-                sh '. "$VENV_HOME/bin/activate" && pip install --upgrade pip'
-                sh '. "$VENV_HOME/bin/activate" && pip install -r requirements.txt'
+                script {
+                    if (isUnix()) {
+                        sh '. "$VENV_HOME/bin/activate" && pip install --upgrade pip'
+                        sh '. "$VENV_HOME/bin/activate" && pip install -r requirements.txt'
+                    } else {
+                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pip install --upgrade pip'
+                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pip install -r requirements.txt'
+                    }
+                }
             }
         }
         stage('Lint') {
             steps {
-                // Optional: install and run a linter
-                sh '. "$VENV_HOME/bin/activate" && pip install flake8'
-                sh '. "$VENV_HOME/bin/activate" && flake8 .'
+                script {
+                    if (isUnix()) {
+                        sh '. "$VENV_HOME/bin/activate" && pip install flake8'
+                        sh '. "$VENV_HOME/bin/activate" && flake8 .'
+                    } else {
+                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pip install flake8'
+                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && flake8 .'
+                    }
+                }
             }
         }
         stage('Test') {
             steps {
-                // Run your test suite (if any)
-                sh '. "$VENV_HOME/bin/activate" && pytest --maxfail=1 --disable-warnings -q'
+                script {
+                    if (isUnix()) {
+                        sh '. "$VENV_HOME/bin/activate" && pytest --maxfail=1 --disable-warnings -q'
+                    } else {
+                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pytest --maxfail=1 --disable-warnings -q'
+                    }
+                }
             }
         }
         stage('Build Docker Image') {
@@ -53,10 +78,17 @@ pipeline {
                 expression { fileExists 'Dockerfile' }
             }
             steps {
-                // Push to Docker Hub; requires a Jenkins credential with ID 'dockerhub-credentials'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh "docker push adityaram24/hmm-app:${env.BUILD_NUMBER}"
+                script {
+                    // Push to Docker Hub; requires a Jenkins credential with ID 'dockerhub-credentials'
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        if (isUnix()) {
+                            sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                            sh "docker push adityaram24/hmm-app:${env.BUILD_NUMBER}"
+                        } else {
+                            bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
+                            bat 'docker push adityaram24/hmm-app:%BUILD_NUMBER%'
+                        }
+                    }
                 }
             }
         }
