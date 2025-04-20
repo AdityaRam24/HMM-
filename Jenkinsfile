@@ -1,104 +1,61 @@
 pipeline {
     agent any
+
     environment {
-        VENV_HOME = "${WORKSPACE}/venv"
+        // Explicit paths for Python and pip executables
+        PYTHON = 'C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
+        PIP    = 'C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\pip.exe'
+        
     }
+
     stages {
-        stage('Checkout') {
+        stage('Clone Repo') {
             steps {
-                // Pull the latest code from the Git repository
-                checkout scm
+                echo '📥 Cloning Customer Churn Prediction repository...'
+                git branch: 'main', url: 'https://github.com/Ishaan-afk70/Customer-Churn-Prediction.git'
             }
         }
-        stage('Setup Python') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        // Linux/macOS: create and activate venv
-                        sh 'python3 -m venv "$VENV_HOME"'
-                        sh '. "$VENV_HOME/bin/activate"'
-                    } else {
-                        // Windows: create and activate venv
-                        bat '"C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe" -m venv "%VENV_HOME%"'
-                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat"'
-                    }
-                }
-            }
-        }
+
         stage('Install Dependencies') {
             steps {
-                script {
-                    if (isUnix()) {
-                        // Upgrade pip and install dependencies on Unix
-                        sh '. "$VENV_HOME/bin/activate" && pip install --upgrade pip'
-                        sh '. "$VENV_HOME/bin/activate" && pip install -r requirements.txt'
-                    } else {
-                        // Use python -m pip on Windows to upgrade pip
-                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && python -m pip install --upgrade pip'
-                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pip install -r requirements.txt'
-                    }
-                }
+                echo '📦 Installing Python packages...'
+                bat '''
+                    %PIP% install --upgrade pip
+                    %PIP% install -r requirements.txt
+                    // Additional test dependencies
+                    %PIP% install werkzeug flask pytest pytest-flask
+                    pip list
+                '''
             }
         }
-        stage('Lint') {
+
+        stage('Run Model Script') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh '. "$VENV_HOME/bin/activate" && pip install flake8'
-                        sh '. "$VENV_HOME/bin/activate" && flake8 .'
-                    } else {
-                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pip install flake8'
-                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && flake8 .'
-                    }
-                }
+                echo '🚀 Executing churn prediction script...'
+                bat '%PYTHON% churn.py'
             }
         }
-        stage('Test') {
+
+        stage('Run Tests') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh '. "$VENV_HOME/bin/activate" && pytest --maxfail=1 --disable-warnings -q'
-                    } else {
-                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pytest --maxfail=1 --disable-warnings -q'
-                    }
-                }
+                echo '🧪 Running unit tests...'
+                bat '%PYTHON% -m pytest tests --maxfail=1 --disable-warnings -q'
             }
         }
-        stage('Build Docker Image') {
-            when {
-                expression { fileExists 'Dockerfile' }
-            }
+
+        stage('Deploy (optional)') {
             steps {
-                script {
-                    // Build Docker image with tag based on build number
-                    dockerImage = docker.build("adityaram24/hmm-app:${env.BUILD_NUMBER}")
-                }
-            }
-        }
-        stage('Push Docker Image') {
-            when {
-                expression { fileExists 'Dockerfile' }
-            }
-            steps {
-                script {
-                    // Push to Docker Hub; requires a Jenkins credential with ID 'dockerhub-credentials'
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        if (isUnix()) {
-                            sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                            sh "docker push adityaram24/hmm-app:${env.BUILD_NUMBER}"
-                        } else {
-                            bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
-                            bat 'docker push adityaram24/hmm-app:%BUILD_NUMBER%'
-                        }
-                    }
-                }
+                echo '🚢 Deployment logic placeholder.'
             }
         }
     }
+
     post {
-        always {
-            // Clean up workspace after build
-            cleanWs()
+        success {
+            echo '✅ Pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed. Review console output for details.'
         }
     }
 }
