@@ -139,28 +139,28 @@ def get_tickers():
     
     # This is a simplified example - in a real app, you'd query a proper database
     # of stock tickers or use an API
-    common_tickers = {
-        'SPY': 'SPDR S&P 500 ETF Trust',
-        'QQQ': 'Invesco QQQ Trust (NASDAQ-100 Index)',
-        'AAPL': 'Apple Inc.',
-        'MSFT': 'Microsoft Corporation',
-        'GOOGL': 'Alphabet Inc.',
-        'AMZN': 'Amazon.com Inc.',
-        'TSLA': 'Tesla Inc.',
-        'META': 'Meta Platforms Inc.',
-        'NVDA': 'NVIDIA Corporation',
-        'BRK.B': 'Berkshire Hathaway Inc.',
-        'JPM': 'JPMorgan Chase & Co.',
-        'JNJ': 'Johnson & Johnson',
-        'V': 'Visa Inc.',
-        'PG': 'Procter & Gamble Co.',
-        'XOM': 'Exxon Mobil Corporation',
-        'DIS': 'The Walt Disney Company',
-        'HD': 'Home Depot Inc.',
-        'BAC': 'Bank of America Corporation',
-        'INTC': 'Intel Corporation',
-        'VZ': 'Verizon Communications Inc.'
-    }
+    # common_tickers = {
+    #     'SPY': 'SPDR S&P 500 ETF Trust',
+    #     'QQQ': 'Invesco QQQ Trust (NASDAQ-100 Index)',
+    #     'AAPL': 'Apple Inc.',
+    #     'MSFT': 'Microsoft Corporation',
+    #     'GOOGL': 'Alphabet Inc.',
+    #     'AMZN': 'Amazon.com Inc.',
+    #     'TSLA': 'Tesla Inc.',
+    #     'META': 'Meta Platforms Inc.',
+    #     'NVDA': 'NVIDIA Corporation',
+    #     'BRK.B': 'Berkshire Hathaway Inc.',
+    #     'JPM': 'JPMorgan Chase & Co.',
+    #     'JNJ': 'Johnson & Johnson',
+    #     'V': 'Visa Inc.',
+    #     'PG': 'Procter & Gamble Co.',
+    #     'XOM': 'Exxon Mobil Corporation',
+    #     'DIS': 'The Walt Disney Company',
+    #     'HD': 'Home Depot Inc.',
+    #     'BAC': 'Bank of America Corporation',
+    #     'INTC': 'Intel Corporation',
+    #     'VZ': 'Verizon Communications Inc.'
+    # }
     
     if query:
         # Filter tickers that start with the query
