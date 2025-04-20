@@ -1,8 +1,8 @@
 pipeline {
-    agent { label 'windows' } // or 'any' if your Jenkins agents are Windows by default
+    agent any
 
     environment {
-        // Point to your Python executable
+        // Your Python interpreter
         PYTHON = 'C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
     }
 
@@ -15,7 +15,6 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                // Upgrade pip and install from requirements.txt
                 bat """
                    "%PYTHON%" -m pip install --upgrade pip
                    "%PYTHON%" -m pip install -r requirements.txt
@@ -25,9 +24,9 @@ pipeline {
 
         stage('Lint & Test') {
             steps {
-                // If you have pytest or flake8 configured, uncomment what's needed
                 bat """
-                   // "%PYTHON%" -m flake8 .
+                   REM Uncomment if you add flake8
+                   REM "%PYTHON%" -m flake8 .
                    "%PYTHON%" -m pytest --maxfail=1 --disable-warnings -q || exit 0
                 """
             }
@@ -35,7 +34,6 @@ pipeline {
 
         stage('Run Flask App') {
             steps {
-                // Launch your Flask app; Jenkins will show the console logs
                 bat """
                    echo Starting Flask app...
                    "%PYTHON%" app.py
@@ -46,7 +44,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished.'
+            echo '🛠 Pipeline complete.'
         }
         success {
             echo '✅ Build succeeded!'
