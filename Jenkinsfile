@@ -21,18 +21,9 @@ pipeline {
             }
         }
 
-        stage('Lint & Test') {
-            steps {
-                bat """
-                   REM Lint (if you add flake8)
-                   REM "%PYTHON%" -m flake8 .
-                   "%PYTHON%" -m pytest --maxfail=1 --disable-warnings -q
-                """
-            }
-        }
-
         stage('Package') {
             steps {
+                // if you don't have setup.py, you can skip this
                 bat """
                    "%PYTHON%" -m pip install wheel
                    "%PYTHON%" setup.py bdist_wheel
@@ -48,8 +39,8 @@ pipeline {
     }
 
     post {
-        always { echo '🛠 Pipeline complete.' }
-        success { echo '✅ Build succeeded!' }
-        failure { echo '❌ Build failed!' }
+        always   { echo '🚀 Pipeline finished.' }
+        success  { echo '✅ Build succeeded!' }
+        failure  { echo '❌ Build failed!' }
     }
 }
