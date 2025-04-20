@@ -29,10 +29,12 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
+                        // Upgrade pip and install dependencies on Unix
                         sh '. "$VENV_HOME/bin/activate" && pip install --upgrade pip'
                         sh '. "$VENV_HOME/bin/activate" && pip install -r requirements.txt'
                     } else {
-                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pip install --upgrade pip'
+                        // Use python -m pip on Windows to upgrade pip
+                        bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && python -m pip install --upgrade pip'
                         bat 'call "%VENV_HOME%\\Scripts\\activate.bat" && pip install -r requirements.txt'
                     }
                 }
