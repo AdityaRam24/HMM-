@@ -12,7 +12,7 @@ RUN apt-get update \
 # Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir gunicorn
+    && pip install --no-cache-dir gunicorn pytest
 
 # Copy your application code
 COPY . .
