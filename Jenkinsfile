@@ -2,7 +2,9 @@ pipeline {
     agent any
 
     environment {
-        PYTHON = 'C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
+        // Define Docker image name
+        DOCKER_IMAGE = 'hmm-app'
+        DOCKER_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -12,29 +14,30 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build Docker Image') {
             steps {
                 bat """
-                   echo Installing dependencies…
-                   "%PYTHON%" -m pip install --upgrade pip
-                   "%PYTHON%" -m pip install -r requirements.txt
-                   "%PYTHON%" -m pip install pytest
+                    echo Building Docker image...
+                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
                 """
             }
         }
 
-        stage('Test') {
+        stage('Test in Docker') {
             steps {
                 bat """
-                   echo Running pytest…
-                   "%PYTHON%" -m pytest tests --maxfail=1 --disable-warnings -q
+                    echo Running tests in Docker container...
+                    docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} pytest tests --maxfail=1 --disable-warnings -q
                 """
             }
         }
 
-        stage('Build (optional)') {
+        stage('Clean Up') {
             steps {
-                bat 'echo Build complete!'
+                bat """
+                    echo Cleaning up resources...
+                    docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || echo "Image removal failed but continuing"
+                """
             }
         }
     }
