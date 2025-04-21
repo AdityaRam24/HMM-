@@ -27,7 +27,7 @@ pipeline {
             steps {
                 bat """
                     echo Running tests in Docker container...
-                    docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} pytest tests --maxfail=1 --disable-warnings -q
+                    docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} python -m pytest tests --maxfail=1 --disable-warnings -q
                 """
             }
         }
