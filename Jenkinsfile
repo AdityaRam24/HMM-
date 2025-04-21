@@ -6,6 +6,7 @@ pipeline {
         DOCKER_IMAGE = 'hmm-app'
         DOCKER_TAG = "${BUILD_NUMBER}"
         CONTAINER_NAME = 'hmm-app-container'
+        HOST_PORT = '9090'  // Using port 9090 which is less likely to be in use
     }
 
     stages {
@@ -41,9 +42,14 @@ pipeline {
                     docker rm ${CONTAINER_NAME} || echo "No container to remove"
                     
                     echo Deploying application container...
-                    docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:5000 ${DOCKER_IMAGE}:${DOCKER_TAG}
                     
-                    echo Container deployed at http://localhost:5000
+                    echo Container deployed at http://localhost:${HOST_PORT}
+                    
+                    timeout /t 5 /nobreak > nul
+                    
+                    echo Checking if container is running...
+                    docker ps | findstr ${CONTAINER_NAME} || (echo "Container failed to start" && exit 1)
                 """
             }
         }
@@ -60,7 +66,7 @@ pipeline {
             """
         }
         success {
-            echo '✅ Build succeeded! Container is running at http://localhost:5000'
+            echo '✅ Build succeeded! Container is running at http://localhost:${HOST_PORT}'
         }
         always {
             echo '🛠 Pipeline finished.'
