@@ -137,8 +137,7 @@ def get_tickers():
     """API endpoint to get stock ticker suggestions"""
     query = request.args.get('q', '').upper()
     
-    This is a simplified example - in a real app, you'd query a proper database
-    of stock tickers or use an API
+    
     common_tickers = {
         'SPY': 'SPDR S&P 500 ETF Trust',
         'QQQ': 'Invesco QQQ Trust (NASDAQ-100 Index)',
