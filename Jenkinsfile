@@ -5,6 +5,7 @@ pipeline {
         // Define Docker image name
         DOCKER_IMAGE = 'hmm-app'
         DOCKER_TAG = "${BUILD_NUMBER}"
+        CONTAINER_NAME = 'hmm-app-container'
     }
 
     stages {
@@ -27,24 +28,42 @@ pipeline {
             steps {
                 bat """
                     echo Running tests in Docker container...
-                    docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} python -m pytest tests --maxfail=1 --disable-warnings -q
+                    docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} python -m pytest tests --maxfail=1 --disable-warnings -q || exit 1
                 """
             }
         }
-
-        stage('Clean Up') {
+        
+        stage('Deploy Container') {
             steps {
                 bat """
-                    echo Cleaning up resources...
-                    docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || echo "Image removal failed but continuing"
+                    echo Stopping any existing container...
+                    docker stop ${CONTAINER_NAME} || echo "No container to stop"
+                    docker rm ${CONTAINER_NAME} || echo "No container to remove"
+                    
+                    echo Deploying application container...
+                    docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    
+                    echo Container deployed at http://localhost:5000
                 """
             }
         }
     }
 
     post {
-        always  { echo '🛠 Pipeline finished.' }
-        success { echo '✅ Build succeeded!' }
-        failure { echo '❌ Build failed!' }
+        failure {
+            echo '❌ Build failed!'
+            bat """
+                echo Cleaning up resources on failure...
+                docker stop ${CONTAINER_NAME} || echo "No container to stop"
+                docker rm ${CONTAINER_NAME} || echo "No container to remove"
+                docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || echo "No image to remove"
+            """
+        }
+        success {
+            echo '✅ Build succeeded! Container is running at http://localhost:5000'
+        }
+        always {
+            echo '🛠 Pipeline finished.'
+        }
     }
 }
